@@ -1,25 +1,21 @@
 package cz.dejfcold.keycloak.protocol
 
-import org.jboss.logging.Logger
-import org.keycloak.models.ClientSessionContext
-import org.keycloak.models.GroupModel
-import org.keycloak.models.KeycloakSession
-import org.keycloak.models.ProtocolMapperModel
-import org.keycloak.models.RoleModel
-import org.keycloak.models.UserSessionModel
-import org.keycloak.protocol.oidc.mappers.*
+import org.keycloak.models.*
+import org.keycloak.protocol.oidc.mappers.AbstractOIDCProtocolMapper
+import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper
+import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper
+import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper
 import org.keycloak.provider.ProviderConfigProperty
 import org.keycloak.representations.IDToken
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
-private const val PROVIDER_ID = "oidc-group-role-mapper"
-private const val SPLIT_COMPOSITES = "cz.dejfcold.group-role.split-composites"
-private const val INCLUDE_COMPOSITES = "cz.dejfcold.group-role.include-composites"
-private const val CLAIM_NAME = "group-roles"
-
-private val LOGGER = Logger.getLogger(GroupRoleProtocolMapper::class.java)
+internal const val DISPLAY_TYPE = "Group to Role"
+internal const val PROVIDER_ID = "oidc-group-role-mapper"
+internal const val SPLIT_COMPOSITES = "cz.dejfcold.group-role.split-composites"
+internal const val INCLUDE_COMPOSITES = "cz.dejfcold.group-role.include-composites"
+internal const val CLAIM_NAME = "group-roles"
 
 private fun <T> Stream<T>.toSet() = this.collect(Collectors.toSet())
 
@@ -69,7 +65,7 @@ class GroupRoleProtocolMapper : OIDCAccessTokenMapper, OIDCIDTokenMapper, Abstra
     }
 
     override fun getDisplayType(): String {
-        return "Group to Role"
+        return DISPLAY_TYPE
     }
 
     override fun setClaim(
@@ -81,14 +77,6 @@ class GroupRoleProtocolMapper : OIDCAccessTokenMapper, OIDCIDTokenMapper, Abstra
     ) {
         if (token == null) {
             throw GroupRoleException("No token to update!")
-        }
-        if (token.otherClaims == null) {
-            throw GroupRoleException("There are no otherClaims in this token!")
-        }
-
-
-        if (mappingModel?.config == null) {
-            LOGGER.warn("No config present! Will use default values.")
         }
 
         val config = mappingModel?.config
