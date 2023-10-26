@@ -11,11 +11,12 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation(kotlin("stdlib-jdk8"))
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.keycloak:keycloak-server-spi:22.0.4")
-    implementation("org.keycloak:keycloak-server-spi-private:22.0.4")
-    implementation("org.keycloak:keycloak-services:22.0.4")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    implementation("org.keycloak:keycloak-server-spi-private:22.0.5")
+    implementation("org.keycloak:keycloak-services:22.0.5")
 }
 
 tasks.test {
@@ -25,6 +26,8 @@ tasks.test {
 kotlin {
     jvmToolchain(17)
 }
+
+tasks.withType<Test> { useJUnitPlatform() }
 
 tasks.withType<Jar> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
