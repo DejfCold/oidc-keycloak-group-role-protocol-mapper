@@ -42,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Download a Build Artifact
@@ -61,11 +64,11 @@ jobs:
         run: docker build . --file Dockerfile --tag ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME
 
       - name: Tag latest
-        run: docker tag ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:latest
+        run: docker tag ghcr.io/${{ github.repository_owner }}/keycloak-group-role:$GITHUB_REF_NAME ghcr.io/${{ github.repository_owner }}/keycloak-group-role:latest
 
       - name: Push versioned Docker image
-        run: docker push ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME
+        run: docker push ghcr.io/${{ github.repository_owner }}/keycloak-group-role:$GITHUB_REF_NAME
 
       - name: Push latest Docker image
-        run: docker push ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:latest
+        run: docker push ghcr.io/${{ github.repository_owner }}/keycloak-group-role:latest
 
