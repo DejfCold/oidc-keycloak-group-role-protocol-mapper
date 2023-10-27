@@ -1,0 +1,70 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+        with:
+          arguments: build
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: jar
+          path: build/libs/
+  release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v2.1.1
+        with:
+          name: jar
+          path: build/libs/
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME
+
+      - name: Tag latest
+        run: docker tag ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:latest
+
+      - name: Push versioned Docker image
+        run: docker push ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME
+
+      - name: Push latest Docker image
+        run: docker push ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:latest
+
