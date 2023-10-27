@@ -2,16 +2,14 @@ name: Docker Image CI
 
 on:
   workflow_run:
-    workflows: [Java CI with Gradle]
-    types:
-      - completed
-    tags:
-     - '*'
+    workflows: [ "Java CI with Gradle" ]
+    types: [ completed ]
+    tags: [ "*" ]
 
 jobs:
   on-success:
-      runs-on: ubuntu-latest
-      steps:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
       - name: Download a Build Artifact
         uses: actions/download-artifact@v2.1.1
