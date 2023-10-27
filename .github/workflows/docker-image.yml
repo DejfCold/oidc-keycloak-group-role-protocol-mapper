@@ -1,0 +1,36 @@
+name: Docker Image CI
+
+on:
+  push:
+    tags:
+     - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.1
+      with:
+        name: jar
+        path: build/libs/
+        
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME
+      
+    - name: Tag latest
+      run: docker tag ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:latest
+      
+    - name: Push versioned Docker image
+      run: docker push ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:$GITHUB_REF_NAME
+      
+    - name: Push latest Docker image
+      run: docker push ghcr.io/oidc-keycloak-group-role-protocol-mapper/keycloak-group-role:latest
